@@ -13,22 +13,28 @@ unsigned long previousMillis = millis();
 
 
 
-// Fio referente aos dados vai conectado ao pino 2
 #define ONE_WIRE_BUS 13
 
 #define HEAT_PUMP_PIN 5
 #define MAIN_PUMP_PIN 4
 #define FULL_SYSTEM_RUNDOWN 60
-#define DELTA_HIST 1
+#define DELTA_HIST 0.3
 
 
-// Setup Inicial
+// Setup DS18B20
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
+DeviceAddress DS18B20[3]; 
+
+#define TMETER0_CORRECTION 0
+#define TMETER1_CORRECTION 1.4
+
 
 long last_minute = 0;
 long last_second = 0;
 long last_hour = 0;
+long last_half_hour = 0;
+long last_ten_minutes = 0;
 
 
 void setup(void)
@@ -50,19 +56,23 @@ void setup(void)
   
   
   // Start up the library
-  sensors.begin();
+  INIT_DS18B20(12);
 
+ 
   pinMode(HEAT_PUMP_PIN,OUTPUT);
   pinMode(MAIN_PUMP_PIN,OUTPUT);
 
   printTemps();
   sendTemps();
   runFullDiag();
+  sendEvents("Boot - setup() performed ");
 }
 
 void loop(void)
 { 
   onLoop();
+
+  serialCommand();
 }
 
 void onMinute() {
@@ -70,12 +80,12 @@ void onMinute() {
   
   printTemps();
   sendTemps();
-  runHeatBreaker();
-
+  
   last_minute = millis();
 }
 
 void onSecond() {
+//  printTemps();
 
   last_second = millis();
 }
@@ -88,17 +98,35 @@ void onHour() {
   last_hour = millis();
 }
 
+
+void onHalfHour() {
+  Serial.println("onHalfHour() ");
+
+  runHeatBreaker();
+
+  last_half_hour = millis();
+}
+
+
+void onTenMinutes() {
+  Serial.println("onTenMinutes() ");
+
+  last_ten_minutes = millis();
+}
+
 void onLoop() {
    long mils = millis();
 
-   if(mils > (last_hour + 360000)) onHour();
+   if(mils > (last_hour + 3600000)) onHour();
+   if(mils > (last_half_hour + 1800000)) onHalfHour();
+   if(mils > (last_ten_minutes + 600000)) onTenMinutes();
    if(mils > (last_minute + 60000)) onMinute();
    if(mils > (last_second + 1000)) onSecond();
 }
 
 bool tempDeltaDiag() {
 
-  if(sensors.getTempCByIndex(0) < (sensors.getTempCByIndex(1) - DELTA_HIST)) return true;
+  if(validTemps() && (getTemp(0) < (getTemp(1) - DELTA_HIST))) return true;
   else return false;
 }
 
@@ -109,9 +137,9 @@ void printTemps() {
   sensors.requestTemperatures();
   Serial.println("Got");
   Serial.print("tempc0: ");
-  Serial.println(sensors.getTempCByIndex(0));  
+  Serial.println(getTemp(0));  
   Serial.print("tempc1: ");
-  Serial.println(sensors.getTempCByIndex(1));  
+  Serial.println(getTemp(1));  
   Serial.print("tempDeltaDiag(): ");
   Serial.println(tempDeltaDiag());
 }
@@ -119,16 +147,21 @@ void printTemps() {
 
 void runFullDiag() {
    int localDelay = FULL_SYSTEM_RUNDOWN * 1000;
-
+   long rFD_start = millis();
   Serial.println("runFullDiag()");
   
-  digitalWrite(HEAT_PUMP_PIN,HIGH);
+  turnHeatPump(1);
 
   Serial.println("runFullDiag() - StartDelay");
-  delay(localDelay);
 
-  if(tempDeltaDiag())   digitalWrite(HEAT_PUMP_PIN,HIGH);
-  else   digitalWrite(HEAT_PUMP_PIN,LOW);
+  while(millis() < (rFD_start + localDelay)) {
+    printTemps();
+  }
+
+  if(validTemps() && tempDeltaDiag())  turnHeatPump(1);
+  else   turnHeatPump(0);
+
+  sendEvents("runFullDiag() performed");
 }
 
 void runDiagChooser() {
@@ -137,14 +170,20 @@ void runDiagChooser() {
   Serial.println("runDiagChooser()");
   
 
-  if(state && !tempDeltaDiag()) digitalWrite(HEAT_PUMP_PIN,LOW);
+  if(state && !tempDeltaDiag())  turnHeatPump(0);
   if(!state)   runFullDiag();
+}
+
+void turnHeatPump(bool state_hp) {
+
+    digitalWrite(HEAT_PUMP_PIN,state_hp);
+    sendEvents("turnHeatPump() performed, state " + state_hp);
 }
 
 void runHeatBreaker() {
   int state = digitalRead(HEAT_PUMP_PIN);
 
-  if(state && !tempDeltaDiag()) digitalWrite(HEAT_PUMP_PIN,LOW);
+  if(validTemps() && state && !tempDeltaDiag()) turnHeatPump(0);
  
 }
 
@@ -160,13 +199,15 @@ void sendTemps() {
       return;
     }
 
-    String url = "/canaa/pool_be.php?millis=";
+    String url = "/canaa/pool_be.php?method=temp_report&millis=";
     url += String(millis());
     url += "&tempc0=";
-    url += sensors.getTempCByIndex(0);
+    url += getTemp(0);
     url += "&tempc1=";
-    url += sensors.getTempCByIndex(1);
-    
+    url += getTemp(1);
+    url += "&heat_pump=";
+    url += digitalRead(HEAT_PUMP_PIN);
+     
     // Envoi la requete au serveur - This will send the request to the server
     client.print(String("GET ") + url + " HTTP/1.1\r\n" +
                "Host: " + host + "\r\n" + 
@@ -186,4 +227,147 @@ void sendTemps() {
       Serial.print(line);
     }
   }
+}
+
+void sendEvents(String event_text) {
+  unsigned long currentMillis = millis();
+
+  event_text = urlencode(event_text);
+
+  if ( currentMillis - previousMillis > watchdog ) {
+    previousMillis = currentMillis;
+    WiFiClient client;
+  
+    if (!client.connect(host, port)) {
+      Serial.println("connection failed");
+      return;
+    }
+
+    String url = "/canaa/pool_be.php?method=events&millis=";
+    url += String(millis());
+    url += "&event_text=";
+    url += event_text;
+     
+    // Envoi la requete au serveur - This will send the request to the server
+    client.print(String("GET ") + url + " HTTP/1.1\r\n" +
+               "Host: " + host + "\r\n" + 
+               "Connection: close\r\n\r\n");
+    unsigned long timeout = millis();
+    while (client.available() == 0) {
+      if (millis() - timeout > 5000) {
+        Serial.println(">>> Client Timeout !");
+        client.stop();
+        return;
+      }
+    }
+  
+    // Read all the lines of the reply from server and print them to Serial
+    while(client.available()){
+      String line = client.readStringUntil('\r');
+      Serial.print(line);
+    }
+  }
+}
+
+
+bool validTemps() {
+
+float tempc1 = getTemp(0);
+float tempc2 = getTemp(1);
+
+
+bool tempc1_ok = false;
+bool tempc2_ok = false;
+
+if(tempc1 > 1 && tempc1 < 84) tempc1_ok = true;
+if(tempc2 > 1 && tempc2 < 84) tempc2_ok = true;
+
+if(tempc1_ok && tempc2_ok) return true;
+else return false;
+  
+}
+
+float getTemp(int index) {
+
+  float return_temp = -500;
+
+     for (int i = 0; i < 100; i++){
+
+      return_temp = sensors.getTempCByIndex(index);
+      if (return_temp > 1 && return_temp < 84)  break;
+   }
+
+  if(index == 0) return_temp = return_temp + TMETER0_CORRECTION;
+  if(index == 1) return_temp = return_temp + TMETER1_CORRECTION;
+
+  return return_temp;
+}
+
+void serialCommand() {
+  if (Serial.available())
+  {
+    char ch = Serial.read();
+    if (ch >= '1' && ch <= '16') {
+      pinMode(ch,OUTPUT);
+      digitalWrite(ch,HIGH);
+    }
+
+    if (ch <= '-1' && ch >= '-16') {
+      ch = abs(ch);
+      pinMode(ch,OUTPUT);
+      digitalWrite(ch,LOW);
+    }
+  }
+}
+
+void INIT_DS18B20(int precision)
+{
+  sensors.begin();
+
+  int available = sensors.getDeviceCount();
+
+  for(int x = 0; x!= available; x++)
+  {
+    if(sensors.getAddress(DS18B20[x], x))
+    {
+      sensors.setResolution(DS18B20[x], precision);
+    }
+  }
+}
+
+
+
+String urlencode(String str)
+{
+    String encodedString="";
+    char c;
+    char code0;
+    char code1;
+    char code2;
+    for (int i =0; i < str.length(); i++){
+      c=str.charAt(i);
+      if (c == ' '){
+        encodedString+= '+';
+      } else if (isalnum(c)){
+        encodedString+=c;
+      } else{
+        code1=(c & 0xf)+'0';
+        if ((c & 0xf) >9){
+            code1=(c & 0xf) - 10 + 'A';
+        }
+        c=(c>>4)&0xf;
+        code0=c+'0';
+        if (c > 9){
+            code0=c - 10 + 'A';
+        }
+        code2='\0';
+        encodedString+='%';
+        encodedString+=code0;
+        encodedString+=code1;
+        //encodedString+=code2;
+      }
+      yield();
+    }
+    return encodedString;
+    
 }
