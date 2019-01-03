@@ -3,12 +3,13 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
 
 const char* ssid     = "Canaa";      // SSID
 const char* password = "nivealucasivan";      // Password
 const char* host = "sa2.com.br";  // IP serveur - Server IP
 const int   port = 80;            // Port serveur - Server Port
-const int   watchdog = 5000;        // Fréquence du watchdog - Watchdog frequency
+const int   watchdog = 10000;        // Fréquence du watchdog - Watchdog frequency
 unsigned long previousMillis = millis(); 
 
 
@@ -71,8 +72,6 @@ void setup(void)
 void loop(void)
 { 
   onLoop();
-
-  serialCommand();
 }
 
 void onMinute() {
@@ -80,6 +79,7 @@ void onMinute() {
   
   printTemps();
   sendTemps();
+  checkMainPumpPerm();
   
   last_minute = millis();
 }
@@ -155,7 +155,9 @@ void runFullDiag() {
   Serial.println("runFullDiag() - StartDelay");
 
   while(millis() < (rFD_start + localDelay)) {
+   Serial.println("runFullDiag() - Delay");
     printTemps();
+    yield();
   }
 
   if(validTemps() && tempDeltaDiag())  turnHeatPump(1);
@@ -166,18 +168,29 @@ void runFullDiag() {
 
 void runDiagChooser() {
   int state = digitalRead(HEAT_PUMP_PIN);
-
-  Serial.println("runDiagChooser()");
+  int net_perm = getPermissionDiag();
   
+  Serial.println("runDiagChooser()");
 
   if(state && !tempDeltaDiag())  turnHeatPump(0);
-  if(!state)   runFullDiag();
+  if(!state && net_perm != 0)   runFullDiag();
 }
 
 void turnHeatPump(bool state_hp) {
 
     digitalWrite(HEAT_PUMP_PIN,state_hp);
     sendEvents("turnHeatPump() performed, state " + state_hp);
+}
+
+void turnMainPump(bool state_hp) {
+
+    digitalWrite(MAIN_PUMP_PIN,state_hp);
+    sendEvents("turnMainPump() performed, state " + state_hp);
+}
+
+void checkMainPumpPerm() {
+  if(getPermissionMainPump() == 1) turnMainPump(1);
+  else turnMainPump(0);
 }
 
 void runHeatBreaker() {
@@ -188,6 +201,8 @@ void runHeatBreaker() {
 }
 
 void sendTemps() {
+  Serial.println("sendTemps()");
+  
   unsigned long currentMillis = millis();
 
   if ( currentMillis - previousMillis > watchdog ) {
@@ -219,17 +234,21 @@ void sendTemps() {
         client.stop();
         return;
       }
+      yield();
     }
   
     // Read all the lines of the reply from server and print them to Serial
     while(client.available()){
       String line = client.readStringUntil('\r');
       Serial.print(line);
+      yield();
     }
   }
 }
 
 void sendEvents(String event_text) {
+  Serial.println("sendEvents()");
+
   unsigned long currentMillis = millis();
 
   event_text = urlencode(event_text);
@@ -259,12 +278,14 @@ void sendEvents(String event_text) {
         client.stop();
         return;
       }
+      yield();
     }
   
     // Read all the lines of the reply from server and print them to Serial
     while(client.available()){
       String line = client.readStringUntil('\r');
       Serial.print(line);
+      yield();
     }
   }
 }
@@ -295,6 +316,7 @@ float getTemp(int index) {
 
       return_temp = sensors.getTempCByIndex(index);
       if (return_temp > 1 && return_temp < 84)  break;
+      yield();
    }
 
   if(index == 0) return_temp = return_temp + TMETER0_CORRECTION;
@@ -303,22 +325,6 @@ float getTemp(int index) {
   return return_temp;
 }
 
-void serialCommand() {
-  if (Serial.available())
-  {
-    char ch = Serial.read();
-    if (ch >= '1' && ch <= '16') {
-      pinMode(ch,OUTPUT);
-      digitalWrite(ch,HIGH);
-    }
-
-    if (ch <= '-1' && ch >= '-16') {
-      ch = abs(ch);
-      pinMode(ch,OUTPUT);
-      digitalWrite(ch,LOW);
-    }
-  }
-}
 
 void INIT_DS18B20(int precision)
 {
@@ -332,6 +338,7 @@ void INIT_DS18B20(int precision)
     {
       sensors.setResolution(DS18B20[x], precision);
     }
+    yield();
   }
 }
 
@@ -370,4 +377,61 @@ String urlencode(String str)
     }
     return encodedString;
     
+}
+
+int getPermissionDiag() {
+HTTPClient http;
+  http.setTimeout(10000);
+
+  String url = "http://";
+    url += host;
+    url += "/canaa/pool_be.php?method=permission_diag";
+  
+  http.begin(url);
+
+  int httpCode = http.GET();
+
+  if(httpCode != 200) {
+    http.end();
+    Serial.println(httpCode);
+
+    return -1;
+  }
+  else {
+String payload = http.getString();
+//Serial.println(payload);
+http.end();
+
+return payload.toInt(); 
+  }
+
+}
+
+
+int getPermissionMainPump() {
+HTTPClient http;
+  http.setTimeout(10000);
+
+  String url = "http://";
+    url += host;
+    url += "/canaa/pool_be.php?method=main_pump";
+  
+  http.begin(url);
+
+  int httpCode = http.GET();
+
+  if(httpCode != 200) {
+    http.end();
+    Serial.println(httpCode);
+
+    return -1;
+  }
+  else {
+String payload = http.getString();
+//Serial.println(payload);
+http.end();
+
+return payload.toInt(); 
+  }
+
 }
