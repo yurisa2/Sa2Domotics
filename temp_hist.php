@@ -2,7 +2,6 @@
 include_once "include/include_all.php";
 unlink("temp_plot.png");
 
-
 $json_temp = file_get_contents("temp.json");
 $json_temp = json_decode($json_temp);
 $time = $json_temp->time;
@@ -81,7 +80,7 @@ $html .= "              </tbody>
                     $plot->SetIsInline(true);
                     $plot->SetTitle('Temperatura ultimas 24 h');
                     $plot->SetLegend(array('T.Entrada', 'T.Saida'));
-                    $plot->SetDataColors(array('red', 'blue'));
+                    $plot->SetDataColors(array('blue','red'));
                     $plot->SetPlotType('lines');
                     $plot->SetDataType('data-data');
                     $plot->SetDataValues($plot_data);

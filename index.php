@@ -5,6 +5,8 @@ include_once "include/include_all.php";
 $json_temp = file_get_contents("temp.json");
 $json_temp = json_decode($json_temp);
 
+$main_pump = 0;
+
 $time = $json_temp->time;
 $millis = $json_temp->millis;
 $tempc0 = $json_temp->tempc0;
@@ -27,10 +29,6 @@ $temppc1 = ($tempc1 - $temp_p_min) * $mult_factor;
 
 $temp_delta_ppc = ($temp_delta+7)* (100/14);
 
-
-//  var_dump($temp_p_min);
-// exit;
-
 if($heat_pump) {
   $heat_pump = "LIGADA";
   $animada = "progress-bar-striped progress-bar-animated";
@@ -48,7 +46,7 @@ if($main_pump) {
 }
 
 
-$dia_hora = date('Y-m-d h:i:s',$time);
+$dia_hora = date('Y-m-d G:i:s',$time);
 
 
 //var_dump($temppc0);
@@ -61,69 +59,133 @@ function secondsToTime($seconds) {
 }
 
 $body = '
-        <br><br>
+<br><br>
 
-          <h1>Dashboard</h1>
-          Ultimo contato: '.$dia_hora.'
+<h1>Dashboard</h1>
+Ultimo contato: '.$dia_hora.'
 <br>
 <br>
-          Piscina:
-          <div class="progress"  style="height: 40px ;font-size:20px;">
-            <div class="progress-bar '.$animada.'" role="progressbar" aria-valuenow="'.$temppc0.'" aria-valuemin="'.$temp_p_min.'"
+Piscina:
+<div class="progress"  style="height: 40px ;font-size:20px;">
+<div class="progress-bar '.$animada.'" role="progressbar" aria-valuenow="'.$temppc0.'" aria-valuemin="'.$temp_p_min.'"
 aria-valuemax="'.$temp_p_max.'"
 style="width: '.$temppc0.'%; height: 100%;">
-              '.$tempc0.'
-            </div>
-          </div>
+'.$tempc0.'
+</div>
+</div>
 Aquecedor:
 <div class="progress"  style="height: 40px ;font-size:20px;">
-            <div class="progress-bar '.$animada.' bg-danger" role="progressbar" aria-valuenow="'.$temppc1.'" aria-valuemin="'.$temp_p_min.'"
+<div class="progress-bar '.$animada.' bg-danger" role="progressbar" aria-valuenow="'.$temppc1.'" aria-valuemin="'.$temp_p_min.'"
 aria-valuemax="'.$temp_p_max.'" style="width: '.$temppc1.'%; height: 100%;">
-		'.$tempc1.'
+'.$tempc1.'
 </div>
-          </div>
+</div>
 Delta:
 <div class="progress"  style="height: 20px ;font-size:20px;">
-            <div class="progress-bar '.$animada.' bg-success" role="progressbar" aria-valuenow="'.$temp_delta.'" aria-valuemin="-1"
+<div class="progress-bar '.$animada.' bg-success" role="progressbar" aria-valuenow="'.$temp_delta.'" aria-valuemin="-1"
 aria-valuemax="7" style="width: '.$temp_delta_ppc.'%; height: 100%;">
-		'.$temp_delta.'
+'.$temp_delta.'
 </div>
-          </div>
+</div>
 
 
-          <br>
+<br>
 
-          <div class="card" style="width: 18rem;">
-            <div class="card-body">
-              <h5 class="card-title">Status sistema:</h5>
+<div class="card" style="width: 18rem;">
+<div class="card-body">
+<h5 class="card-title">Status sistema:</h5>
 
-              <p class="card-text">Bomba de aquecimento:
-              <div class="progress"  style="height: 20px ;font-size:20px;">
-                          <div class="progress-bar '.$animada.' bg-warning" role="progressbar" aria-valuenow="100"
-              aria-valuemin="0" aria-valuemax="100" style="width: 100%; height: 100%;">'.$heat_pump.'
-              </div>
-            </div>
-            </p>
-              <p class="card-text">Bomba Principal:
-              <div class="progress"  style="height: 20px ;font-size:20px;">
-                          <div class="progress-bar '.$animada_main.' bg-warning" role="progressbar" aria-valuenow="100"
-              aria-valuemin="0" aria-valuemax="100" style="width: 100%; height: 100%;">'.$heat_pump.'
-              </div>
-            </div>
-            </p>
+<p class="card-text">Bomba de aquecimento:
+<div class="progress"  style="height: 20px ;font-size:20px;">
+<div class="progress-bar '.$animada.' bg-warning" role="progressbar" aria-valuenow="100"
+aria-valuemin="0" aria-valuemax="100" style="width: 100%; height: 100%;">'.$heat_pump.'
+</div>
+</div>
+</p>
+<p class="card-text">Bomba Principal:
+<div class="progress"  style="height: 20px ;font-size:20px;">
+<div class="progress-bar '.$animada_main.' bg-warning" role="progressbar" aria-valuenow="100"
+aria-valuemin="0" aria-valuemax="100" style="width: 100%; height: 100%;">'.$heat_pump.'
+</div>
+</div>
+</p>
 
-              <p class="card-text">Tempo ligado:'.secondsToTime(round($millis / 1000)).'</p>
+<p class="card-text">Tempo ligado:'.secondsToTime(round($millis / 1000)).'</p>
+</div>
+</div>
+
+';
+
+$vazao = 4;
+
+$fDB = new FileToDb;
+$fDB->readFiles("files");
+
+$time_24h = time() - 86400;
+$time_1wk = time() - (86400 * 7) ;
+$time_1mo = time() - (86400 * 30) ;
 
 
-              <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
-            </div>
-          </div>';
+foreach ($fDB->readContents("temp") as $key => $value) {
+  if($value->time > $time_24h && $value->heat_pump == 1) {
+    $tempc1_24h[] = $value->tempc1;
+    $tempc0_24h[] = $value->tempc0;
+    $delta_local_24h[] = $value->tempc1-$value->tempc0;
+  };
+  if($value->time > $time_1wk && $value->heat_pump == 1) {
+    $tempc1_1wk[] = $value->tempc1;
+    $tempc0_1wk[] = $value->tempc0;
+    $delta_local_1wk[] = $value->tempc1-$value->tempc0;
+  };
+  if($value->time > $time_1mo && $value->heat_pump == 1) {
+    $tempc1_1mo[] = $value->tempc1;
+    $tempc0_1mo[] = $value->tempc0;
+    $delta_local_1mo[] = $value->tempc1-$value->tempc0;
+  };
+}
 
+function avg($a) {
+  // $a = array_filter($a);
+  $average = array_sum($a)/count($a);
+  return $average;
+}
 
-          $pb = new PageBuilder;
-          $pb->build_menu($menu_title,$menu_items);
-          $pb->append_body($body);
+$watts = round(($temp_delta*60*$vazao)/853*1000);
+if($watts <= 0) $watts = 0;
 
-          $pb->render_full_html();
+$watts_24h = round((array_sum($delta_local_24h)*$vazao)/853*1000);
+$watts_1wk= round((array_sum($delta_local_1wk)*$vazao)/853*1000);
+$watts_1mo= round((array_sum($delta_local_1mo)*$vazao)/853*1000);
+
+$watts_m = $watts / 65;
+
+$body .= '<div class="card" style="width: 18rem;">
+<div class="card-body">
+<h5 class="card-title">Energia instantanea:</h5>
+<p class="card-text">Watts: '.$watts.'
+<br>Watts/m: '.round($watts_m,2).'</p>
+<p class="card-text">Assumindo: vazão de 4L/m, 65m de exposicao</p>
+<h5 class="card-title">Energia acumulada:</h5>
+<p class="card-text">24h: '.$watts_24h.' Watts
+<br>1 semana: '.$watts_1wk.' Watts
+<br>1 Mês: '.$watts_1mo.' Watts</p>
+</div>
+</div>';
+
+$body .= '<div class="card" style="width: 18rem;">
+<div class="card-body">
+<h5 class="card-title">Estatisticas:</h5>
+<p class="card-text">Funcionamento
+<br>24h: '.round(count($delta_local_24h)/60,2).'h
+<br>Semana : '.round(count($delta_local_1wk)/60,2).'h
+<br>Mês : '.round(count($delta_local_1mo)/60,2).'h
+</div>
+</div>';
+
+$pb = new PageBuilder;
+$pb->build_menu($menu_title,$menu_items);
+$pb->append_body($body);
+
+$pb->render_full_html();
 
 ?>

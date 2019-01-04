@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ERROR | E_PARSE);
 
 $method = $_GET["method"];
 
@@ -39,7 +40,22 @@ echo "OK Event received!";
 
 if($method == "main_pump") {
 
-echo 0;
+  $config_main_pump = file_get_contents("include/main_pump_config.json.txt");
+  $config_main_pump = json_decode($config_main_pump);
+
+
+  $now_weekday = "w";
+  $now_weekday .= date('w',time());
+  $now_hour = date('h',time());
+
+  $result_sum;
+  foreach ($config_main_pump as $key => $value) {
+     if($now_weekday == $value ) $result_sum++;
+     if($now_hour == $value ) $result_sum++;
+  }
+
+  if($result_sum == 2) echo 1;
+  else echo 0;
 }
 
 if($method == "permission_diag") {
@@ -49,8 +65,12 @@ if( $hora > 19 || $hora < 7) $perm = 0;
 else $perm = 1;
 
 echo $perm;
-
-$content = time() . " perm = ". $perm;
-
-file_put_contents("watch_perm.json",$content);
 }
+
+
+if($method == "test_mode") {
+
+}
+
+
+?>
