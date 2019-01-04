@@ -6,6 +6,7 @@ $json_temp = file_get_contents("temp.json");
 $json_temp = json_decode($json_temp);
 
 $main_pump = 0;
+$vazao = 4;
 
 $time = $json_temp->time;
 $millis = $json_temp->millis;
@@ -14,10 +15,65 @@ $tempc1 = $json_temp->tempc1;
 $heat_pump = $json_temp->heat_pump;
 $heat_pump = $json_temp->main_pump;
 
-$temp_min = min($tempc0,$tempc1);
-$temp_max = max($tempc0,$tempc1);
+$fDB = new FileToDb;
+$fDB->readFiles("files");
 
+$time_24h = time() - 86400;
+$time_1wk = time() - (86400 * 7) ;
+$time_1mo = time() - (86400 * 30) ;
+
+
+foreach ($fDB->readContents("temp") as $key => $value) {
+  if($value->time > $time_24h) {
+    $temps_24h[] = $value->tempc1;
+    $deltas_24h[] =  $value->tempc1-$value->tempc0;
+  };
+  if($value->time > $time_1wk) {
+    $temps_1wk[] = $value->tempc1;
+    $deltas_1wk[] =  $value->tempc1-$value->tempc0;
+  };
+  if($value->time > $time_1mo) {
+    $temps_1mo[] = $value->tempc1;
+    $deltas_1mo[] =  $value->tempc1-$value->tempc0;
+  };
+
+  if($value->time > $time_24h && $value->heat_pump == 1) {
+    $tempc1_24h[] = $value->tempc1;
+    $tempc0_24h[] = $value->tempc0;
+    $delta_local_24h[] = $value->tempc1-$value->tempc0;
+  };
+  if($value->time > $time_1wk && $value->heat_pump == 1) {
+    $tempc1_1wk[] = $value->tempc1;
+    $tempc0_1wk[] = $value->tempc0;
+    $delta_local_1wk[] = $value->tempc1-$value->tempc0;
+  };
+  if($value->time > $time_1mo && $value->heat_pump == 1) {
+    $tempc1_1mo[] = $value->tempc1;
+    $tempc0_1mo[] = $value->tempc0;
+    $delta_local_1mo[] = $value->tempc1-$value->tempc0;
+  };
+}
+
+function avg($a) {
+  // $a = array_filter($a);
+  $average = array_sum($a)/count($a);
+  return $average;
+}
 $temp_delta = $tempc1 - $tempc0;
+
+$watts = round(($temp_delta*60*$vazao)/853*1000);
+if($watts <= 0) $watts = 0;
+
+$watts_24h = round((array_sum($delta_local_24h)*$vazao)/853*1000);
+$watts_1wk= round((array_sum($delta_local_1wk)*$vazao)/853*1000);
+$watts_1mo= round((array_sum($delta_local_1mo)*$vazao)/853*1000);
+
+$watts_m = $watts / 65;
+
+
+$temp_min = min($temps_24h);
+$temp_max = max($temps_24h);
+
 
 $temp_p_min = $temp_min - abs($temp_delta);
 $temp_p_max = $temp_max;
@@ -27,7 +83,10 @@ $mult_factor = 100/($temp_p_max-$temp_p_min);
 $temppc0 = ($tempc0 - $temp_p_min) * $mult_factor;
 $temppc1 = ($tempc1 - $temp_p_min) * $mult_factor;
 
-$temp_delta_ppc = ($temp_delta+7)* (100/14);
+$min_delta_calc = min($deltas_24h);
+$max_delta_calc = max($deltas_24h);
+
+$temp_delta_ppc = ($temp_delta+abs($min_delta_calc))* (100/(abs($min_delta_calc)+abs($max_delta_calc)));
 
 if($heat_pump) {
   $heat_pump = "LIGADA";
@@ -116,48 +175,8 @@ aria-valuemin="0" aria-valuemax="100" style="width: 100%; height: 100%;">'.$heat
 
 ';
 
-$vazao = 4;
-
-$fDB = new FileToDb;
-$fDB->readFiles("files");
-
-$time_24h = time() - 86400;
-$time_1wk = time() - (86400 * 7) ;
-$time_1mo = time() - (86400 * 30) ;
 
 
-foreach ($fDB->readContents("temp") as $key => $value) {
-  if($value->time > $time_24h && $value->heat_pump == 1) {
-    $tempc1_24h[] = $value->tempc1;
-    $tempc0_24h[] = $value->tempc0;
-    $delta_local_24h[] = $value->tempc1-$value->tempc0;
-  };
-  if($value->time > $time_1wk && $value->heat_pump == 1) {
-    $tempc1_1wk[] = $value->tempc1;
-    $tempc0_1wk[] = $value->tempc0;
-    $delta_local_1wk[] = $value->tempc1-$value->tempc0;
-  };
-  if($value->time > $time_1mo && $value->heat_pump == 1) {
-    $tempc1_1mo[] = $value->tempc1;
-    $tempc0_1mo[] = $value->tempc0;
-    $delta_local_1mo[] = $value->tempc1-$value->tempc0;
-  };
-}
-
-function avg($a) {
-  // $a = array_filter($a);
-  $average = array_sum($a)/count($a);
-  return $average;
-}
-
-$watts = round(($temp_delta*60*$vazao)/853*1000);
-if($watts <= 0) $watts = 0;
-
-$watts_24h = round((array_sum($delta_local_24h)*$vazao)/853*1000);
-$watts_1wk= round((array_sum($delta_local_1wk)*$vazao)/853*1000);
-$watts_1mo= round((array_sum($delta_local_1mo)*$vazao)/853*1000);
-
-$watts_m = $watts / 65;
 
 $body .= '<div class="card" style="width: 18rem;">
 <div class="card-body">
@@ -178,7 +197,18 @@ $body .= '<div class="card" style="width: 18rem;">
 <p class="card-text">Funcionamento
 <br>24h: '.round(count($delta_local_24h)/60,2).'h
 <br>Semana : '.round(count($delta_local_1wk)/60,2).'h
-<br>Mês : '.round(count($delta_local_1mo)/60,2).'h
+<br>Mês : '.round(count($delta_local_1mo)/60,2).'h</p>
+
+<p class="card-text">Temperatura (Max | Min)
+<br>24h: '.max($temps_24h).' | '.min($temps_24h).'
+<br>Semana: '.max($temps_1wk).' | '.min($temps_1wk).'
+<br>Mês: '.max($temps_1mo).' | '.min($temps_1mo).'</p>
+
+<p class="card-text">Deltas (Max | Min)
+<br>24h: '.max($deltas_24h).' | '.min($deltas_24h).'
+<br>Semana: '.max($deltas_1wk).' | '.min($deltas_1wk).'
+<br>Mês: '.max($deltas_1mo).' | '.min($deltas_1mo).'</p>
+
 </div>
 </div>';
 

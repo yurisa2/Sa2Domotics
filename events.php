@@ -27,7 +27,7 @@ $html = "<br><br><br>
 foreach ($fDB->readContents("event") as $key => $value) {
   $html .= "
   <tr>
-  <td>".gmdate('Y-m-d G:i:s',$value->time)."</td>
+  <td>".date('Y-m-d G:i:s',$value->time)."</td>
   <td>$value->event_text</td>
   </tr>
   ";
