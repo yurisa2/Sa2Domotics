@@ -16,7 +16,9 @@ class PageBuilder {
   }
 
   function append_body($body) {
-    $this->body .= $body;
+    if(!empty($this->body))$this->body .= $body;
+    else $this->body = $body;
+
   }
 
   function render_full_html() {

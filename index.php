@@ -2,17 +2,8 @@
 
 include_once "include/include_all.php";
 
-$menu_items = array(
-  "Status" => "index.php",
-  "Temperaturas" => "temp_hist.php",
-  "Eventos" => "events.php"
-);
-
 $json_temp = file_get_contents("temp.json");
-
 $json_temp = json_decode($json_temp);
-
-//var_dump($json_temp);
 
 $time = $json_temp->time;
 $millis = $json_temp->millis;
@@ -20,53 +11,62 @@ $tempc0 = $json_temp->tempc0;
 $tempc1 = $json_temp->tempc1;
 $heat_pump = $json_temp->heat_pump;
 
-$temppc0 = ($tempc0 - 10) * 3.33;
-$temppc1 = ($tempc1 - 10) * 3.33;
+$temp_min = min($tempc0,$tempc1);
+$temp_max = max($tempc0,$tempc1);
 
+$temp_delta = $tempc1 - $tempc0;
 
+$temp_p_min = $temp_min - abs($temp_delta);
+$temp_p_max = $temp_max;
+
+$mult_factor = 100/($temp_p_max-$temp_p_min);
+
+$temppc0 = ($tempc0 - $temp_p_min) * $mult_factor;
+$temppc1 = ($tempc1 - $temp_p_min) * $mult_factor;
+
+//  var_dump($temp_p_min);
+// exit;
 
 if($heat_pump) {
-$heat_pump = "LIGADA";
-$animada = "progress-bar-striped progress-bar-animated";
+  $heat_pump = "LIGADA";
+  $animada = "progress-bar-striped progress-bar-animated";
 } else {
-$heat_pump = "DESLIGADA";
-$animada = "";
-
+  $heat_pump = "DESLIGADA";
+  $animada = "";
 }
 
 
-$dia_hora = date('d/m/y G:i',$time);
+$dia_hora = date('Y-m-d h:i:s',$time);
 
 
 //var_dump($temppc0);
 //var_dump($temppc1);
 
 function secondsToTime($seconds) {
-    $dtF = new \DateTime('@0');
-    $dtT = new \DateTime("@$seconds");
-    return $dtF->diff($dtT)->format('%a d, %h:%i:%s');
+  $dtF = new \DateTime('@0');
+  $dtT = new \DateTime("@$seconds");
+  return $dtF->diff($dtT)->format('%a d, %h:%i:%s');
 }
 
-$body = '<main class="col-sm-9 offset-sm-3 col-md-10 offset-md-2 pt-3">
-        <!-- <main> -->
+$body = '
+        <br><br>
+
           <h1>Dashboard</h1>
           Ultimo contato: '.$dia_hora.'
 <br>
 <br>
           Piscina:
           <div class="progress"  style="height: 50px ;font-size:20px;">
-            <div class="progress-bar '.$animada.'" role="progressbar" aria-valuenow="'.$temppc0.'" aria-valuemin="10"
-aria-valuemax="40"
+            <div class="progress-bar '.$animada.'" role="progressbar" aria-valuenow="'.$temppc0.'" aria-valuemin="'.$temp_p_min.'"
+aria-valuemax="'.$temp_p_max.'"
 style="width: '.$temppc0.'%; height: 100%;">
               '.$tempc0.'
             </div>
           </div>
-<br>
 Aquecedor:
 <div class="progress"  style="height: 50px ;font-size:20px;">
-            <div class="progress-bar '.$animada.' bg-danger" role="progressbar" aria-valuenow="'.$temppc1.'"
-aria-valuemin="10"
-aria-valuemax="40" style="width: '.$temppc1.'%; height: 100%;">
+            <div class="progress-bar '.$animada.' bg-danger" role="progressbar" aria-valuenow="'.$temppc1.'" aria-valuemin="'.$temp_p_min.'"
+aria-valuemax="'.$temp_p_max.'" style="width: '.$temppc1.'%; height: 100%;">
 		'.$tempc1.'
 </div>
           </div>
@@ -97,7 +97,7 @@ aria-valuemax="40" style="width: '.$temppc1.'%; height: 100%;">
 
 
           $pb = new PageBuilder;
-          $pb->build_menu("Teste New Index",$menu_items);
+          $pb->build_menu($menu_title,$menu_items);
           $pb->append_body($body);
 
           $pb->render_full_html();

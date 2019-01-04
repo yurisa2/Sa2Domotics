@@ -18,7 +18,7 @@ foreach ($menu_items as $key => $value) {
     $template .= "
 
       <li class=\"nav-item active\">
-        <a class=\"nav-link\" href=\"$value\">$key</span></a>
+        <a class=\"nav-link\" href=\"$value\">$key</a>
       </li>
 ";
 }
@@ -28,9 +28,6 @@ $template .= "
     </ul>
     </div>
 </nav>
-
-  </nav>
-}
 ";
 
 return $template;
