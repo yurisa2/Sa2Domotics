@@ -31,7 +31,6 @@ foreach ($fDB->readContents("event") as $key => $value) {
   <td>$value->event_text</td>
   </tr>
   ";
-
 }
 
 $html .= "              </tbody>

@@ -9,8 +9,6 @@ $heat_pump = $_GET["heat_pump"];
 
 $event_text = $_GET["event_text"];
 
-$file_db = new PDO('sqlite:db/sa2domotics.db');
-
 if($method == "temp_report") {
 
 $content = array();
@@ -19,19 +17,13 @@ $content["millis"] = $millis;
 $content["tempc0"] = $tempc0;
 $content["tempc1"] = $tempc1;
 $content["heat_pump"] = $heat_pump;
-
-$insert = "INSERT INTO temp_logger (time, millis, tempc0, tempc1)
-            VALUES (time(), $millis, $tempc0, $tempc1)";
-$stmt = $file_db->prepare($insert);
-$stmt->execute();
+$content["main_pump"] = $main_pump;
 
 file_put_contents("temp.json",json_encode($content));
 file_put_contents("files/temp_".time().".json",json_encode($content));
 
-
 echo "OK Temp received!";
 }
-
 
 if($method == "events") {
 
@@ -41,7 +33,6 @@ $content["millis"] = $millis;
 $content["event_text"] = $event_text;
 
 file_put_contents("files/event_".time().".json",json_encode($content));
-
 
 echo "OK Event received!";
 }

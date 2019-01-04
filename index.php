@@ -10,6 +10,7 @@ $millis = $json_temp->millis;
 $tempc0 = $json_temp->tempc0;
 $tempc1 = $json_temp->tempc1;
 $heat_pump = $json_temp->heat_pump;
+$heat_pump = $json_temp->main_pump;
 
 $temp_min = min($tempc0,$tempc1);
 $temp_max = max($tempc0,$tempc1);
@@ -24,6 +25,9 @@ $mult_factor = 100/($temp_p_max-$temp_p_min);
 $temppc0 = ($tempc0 - $temp_p_min) * $mult_factor;
 $temppc1 = ($tempc1 - $temp_p_min) * $mult_factor;
 
+$temp_delta_ppc = ($temp_delta+7)* (100/14);
+
+
 //  var_dump($temp_p_min);
 // exit;
 
@@ -33,6 +37,14 @@ if($heat_pump) {
 } else {
   $heat_pump = "DESLIGADA";
   $animada = "";
+}
+
+if($main_pump) {
+  $main_pump = "LIGADA";
+  $animada_main = "progress-bar-striped progress-bar-animated";
+} else {
+  $main_pump = "DESLIGADA";
+  $animada_main = "";
 }
 
 
@@ -56,7 +68,7 @@ $body = '
 <br>
 <br>
           Piscina:
-          <div class="progress"  style="height: 50px ;font-size:20px;">
+          <div class="progress"  style="height: 40px ;font-size:20px;">
             <div class="progress-bar '.$animada.'" role="progressbar" aria-valuenow="'.$temppc0.'" aria-valuemin="'.$temp_p_min.'"
 aria-valuemax="'.$temp_p_max.'"
 style="width: '.$temppc0.'%; height: 100%;">
@@ -64,10 +76,17 @@ style="width: '.$temppc0.'%; height: 100%;">
             </div>
           </div>
 Aquecedor:
-<div class="progress"  style="height: 50px ;font-size:20px;">
+<div class="progress"  style="height: 40px ;font-size:20px;">
             <div class="progress-bar '.$animada.' bg-danger" role="progressbar" aria-valuenow="'.$temppc1.'" aria-valuemin="'.$temp_p_min.'"
 aria-valuemax="'.$temp_p_max.'" style="width: '.$temppc1.'%; height: 100%;">
 		'.$tempc1.'
+</div>
+          </div>
+Delta:
+<div class="progress"  style="height: 20px ;font-size:20px;">
+            <div class="progress-bar '.$animada.' bg-success" role="progressbar" aria-valuenow="'.$temp_delta.'" aria-valuemin="-1"
+aria-valuemax="7" style="width: '.$temp_delta_ppc.'%; height: 100%;">
+		'.$temp_delta.'
 </div>
           </div>
 
@@ -77,16 +96,21 @@ aria-valuemax="'.$temp_p_max.'" style="width: '.$temppc1.'%; height: 100%;">
           <div class="card" style="width: 18rem;">
             <div class="card-body">
               <h5 class="card-title">Status sistema:</h5>
+
               <p class="card-text">Bomba de aquecimento:
               <div class="progress"  style="height: 20px ;font-size:20px;">
                           <div class="progress-bar '.$animada.' bg-warning" role="progressbar" aria-valuenow="100"
-              aria-valuemin="0"
-              aria-valuemax="100" style="width: 100%; height: 100%;">
-              		'.$heat_pump.'
+              aria-valuemin="0" aria-valuemax="100" style="width: 100%; height: 100%;">'.$heat_pump.'
               </div>
+            </div>
+            </p>
+              <p class="card-text">Bomba Principal:
+              <div class="progress"  style="height: 20px ;font-size:20px;">
+                          <div class="progress-bar '.$animada_main.' bg-warning" role="progressbar" aria-valuenow="100"
+              aria-valuemin="0" aria-valuemax="100" style="width: 100%; height: 100%;">'.$heat_pump.'
               </div>
-
-</p>
+            </div>
+            </p>
 
               <p class="card-text">Tempo ligado:'.secondsToTime(round($millis / 1000)).'</p>
 
