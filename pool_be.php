@@ -7,6 +7,7 @@ $tempc0 = $_GET["tempc0"];
 $tempc1 = $_GET["tempc1"];
 $millis = $_GET["millis"];
 $heat_pump = $_GET["heat_pump"];
+$heat_pump = $_GET["main_pump"];
 
 $event_text = $_GET["event_text"];
 

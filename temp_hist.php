@@ -22,7 +22,8 @@ $html_pre = "<br><br><br>
         <th>Piscina</th>
         <th>Aquecedor</th>
         <th>Delta</th>
-        <th>Bomba</th>
+        <th>Bomba Aquecedor</th>
+        <th>Bomba Principal</th>
       </tr>
     </thead>
     <tbody>
@@ -57,6 +58,7 @@ foreach ($fDB->readContents("temp") as $key => $value) {
 
 }
 
+if(empty($value->main_pump) || $value->main_pump = "" ) $value_main_pump = 0;
 
   $html .= "
   <tr>
@@ -64,7 +66,8 @@ foreach ($fDB->readContents("temp") as $key => $value) {
   <td>$value->tempc0</td>
   <td>$value->tempc1</td>
   <td>$delta_local</td>
-  <td>$value->heat_pump</td>
+  <td>$value_main_pump</td>
+  <td></td>
   </tr>
   ";
 }
