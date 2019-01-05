@@ -13,7 +13,7 @@ $millis = $json_temp->millis;
 $tempc0 = $json_temp->tempc0;
 $tempc1 = $json_temp->tempc1;
 $heat_pump = $json_temp->heat_pump;
-$heat_pump = $json_temp->main_pump;
+$main_pump = $json_temp->main_pump;
 
 $fDB = new FileToDb;
 $fDB->readFiles("files");
@@ -95,18 +95,18 @@ $temp_delta_ppc = ($temp_delta+abs($min_delta_calc))* (100/(abs($min_delta_calc)
 
 if($heat_pump) {
   $heat_pump = "LIGADA";
-  $animada = "progress-bar-striped progress-bar-animated";
+  $animada = "progress-bar-striped progress-bar-animated bg-warning";
 } else {
   $heat_pump = "DESLIGADA";
-  $animada = "";
+  $animada = "bg-dark";
 }
 
 if($main_pump) {
   $main_pump = "LIGADA";
-  $animada_main = "progress-bar-striped progress-bar-animated";
+  $animada_main = "progress-bar-striped progress-bar-animated bg-warning";
 } else {
   $main_pump = "DESLIGADA";
-  $animada_main = "";
+  $animada_main = "bg-dark";
 }
 
 
@@ -161,15 +161,15 @@ aria-valuemax="7" style="width: '.$temp_delta_ppc.'%; height: 100%;">
 
 <p class="card-text">Bomba de aquecimento:
 <div class="progress"  style="height: 20px ;font-size:20px;">
-<div class="progress-bar '.$animada.' bg-warning" role="progressbar" aria-valuenow="100"
+<div class="progress-bar '.$animada.' " role="progressbar" aria-valuenow="100"
 aria-valuemin="0" aria-valuemax="100" style="width: 100%; height: 100%;">'.$heat_pump.'
 </div>
 </div>
 </p>
 <p class="card-text">Bomba Principal:
 <div class="progress"  style="height: 20px ;font-size:20px;">
-<div class="progress-bar '.$animada_main.' bg-warning" role="progressbar" aria-valuenow="100"
-aria-valuemin="0" aria-valuemax="100" style="width: 100%; height: 100%;">'.$heat_pump.'
+<div class="progress-bar '.$animada_main.'" role="progressbar" aria-valuenow="100"
+aria-valuemin="0" aria-valuemax="100" style="width: 100%; height: 100%;">'.$main_pump.'
 </div>
 </div>
 </p>
