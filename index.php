@@ -23,6 +23,10 @@ $time_1wk = time() - (86400 * 7) ;
 $time_1mo = time() - (86400 * 30) ;
 
 
+$delta_local_24h = array();
+$delta_local_1wk = array();
+$delta_local_1mo = array();
+
 foreach ($fDB->readContents("temp") as $key => $value) {
   if($value->time > $time_24h) {
     $temps_24h[] = $value->tempc1;
@@ -63,6 +67,7 @@ $temp_delta = $tempc1 - $tempc0;
 
 $watts = round(($temp_delta*60*$vazao)/853*1000);
 if($watts <= 0) $watts = 0;
+
 
 $watts_24h = round((array_sum($delta_local_24h)*$vazao)/853*1000);
 $watts_1wk= round((array_sum($delta_local_1wk)*$vazao)/853*1000);
