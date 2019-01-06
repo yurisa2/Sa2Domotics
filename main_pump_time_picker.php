@@ -1,15 +1,56 @@
 <?php
 include_once "include/include_all.php";
 
+function convert_pump_time($times) {
 
+  $days = array();
+  $hours = array();
+
+foreach ($times as $key => $value) {
+
+  if(substr($value,0,2) == 'w0') $days[] = "Domingo";
+  if(substr($value,0,2) == 'w1') $days[] = "Segunda";
+  if(substr($value,0,2) == 'w2') $days[] = "Terça";
+  if(substr($value,0,2) == 'w3') $days[] = "Quarta";
+  if(substr($value,0,2) == 'w4') $days[] = "Quinta";
+  if(substr($value,0,2) == 'w5') $days[] = "Sexta";
+  if(substr($value,0,2) == 'w6') $days[] = "Sábado";
+  if(substr($value,0,1) != 'w') $hours[] = $value;
+}
+
+return array($days,$hours);
+}
+
+$times_file = file_get_contents("include/main_pump_config.json.txt");
+$times_file = json_decode($times_file);
+
+// var_dump($times_file);
+// print_r(convert_pump_time($times_file)[0]);
+// print_r(convert_pump_time($times_file)[1]);
+// exit;
 $html = "<br><br><br>
 <h2>Bomba principal</h2>
+Agora: ".date("w - G:i:s",time())."<br>
+<h5>Configurado:</h5>
+Dias:
+";
+foreach(convert_pump_time($times_file)[0] as $key => $value) {
+  $html .= " ".$value.", ";
+}
+$html .= "<br> Horas:";
+foreach(convert_pump_time($times_file)[1] as $key => $value) {
+  $html .= " ".$value.", ";
+}
+
+$html .= "<br><br><br><br>";
+$html .= "
 
 <div class=\"container\">
     <div class=\"row\">
     <form id=\"form1\" name=\"form1\" method=\"post\" action=\"main_pump_time_picker_be.php\" method=\"post\">
 
                 <div class=\"col-sm-12\">
+                <h2>Nova Configuração</h2>
                 <h4>Horas</h4>
                 <div class=\"row\">
     <label style=\"  padding: 5px;\" for=\"00\"> 00 </label>

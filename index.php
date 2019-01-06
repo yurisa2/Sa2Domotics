@@ -95,18 +95,30 @@ $temp_delta_ppc = ($temp_delta+abs($min_delta_calc))* (100/(abs($min_delta_calc)
 
 if($heat_pump) {
   $heat_pump = "LIGADA";
-  $animada = "progress-bar-striped progress-bar-animated bg-warning";
+  $heat_pump_animada = " progress-bar-animated ";
+  $heat_pump_striped = " progress-bar-striped ";
+  $heat_pump_color_pool = " bg-primary ";
+  $heat_pump_color_heater = " bg-danger ";
+  $heat_pump_color_onoff = " bg-warning ";
 } else {
   $heat_pump = "DESLIGADA";
-  $animada = "bg-dark";
+  $heat_pump_animada = " bg-dark ";
+  $heat_pump_striped = "";
+  $heat_pump_color_pool = " bg-light ";
+  $heat_pump_color_heater = " bg-light ";
+  $heat_pump_color_onoff = " bg-light ";
 }
 
 if($main_pump) {
   $main_pump = "LIGADA";
-  $animada_main = "progress-bar-striped progress-bar-animated bg-warning";
+  $main_pump_animada = " progress-bar-animated bg-warning ";
+  $main_pump_striped = " progress-bar-striped ";
+  $main_pump_color = " bg-warning ";
 } else {
   $main_pump = "DESLIGADA";
-  $animada_main = "bg-dark";
+  $main_pump_animada = " bg-dark ";
+  $main_pump_striped = "";
+  $main_pump_color = " bg-light ";
 }
 
 
@@ -123,15 +135,17 @@ function secondsToTime($seconds) {
 }
 
 $body = '
+<div class=\"container\">
+
 <br><br>
 
-<h1>Dashboard</h1>
+<h1>Piscina</h1>
 Ultimo contato: '.$dia_hora.'
 <br>
 <br>
 Piscina:
 <div class="progress"  style="height: 40px ;font-size:20px;">
-<div class="progress-bar '.$animada.'" role="progressbar" aria-valuenow="'.$temppc0.'" aria-valuemin="'.$temp_p_min.'"
+<div class="progress-bar '.$heat_pump_animada.$heat_pump_striped.$heat_pump_color_pool.'" role="progressbar" aria-valuenow="'.$temppc0.'" aria-valuemin="'.$temp_p_min.'"
 aria-valuemax="'.$temp_p_max.'"
 style="width: '.$temppc0.'%; height: 100%;">
 '.$tempc0.'
@@ -139,16 +153,16 @@ style="width: '.$temppc0.'%; height: 100%;">
 </div>
 Aquecedor:
 <div class="progress"  style="height: 40px ;font-size:20px;">
-<div class="progress-bar '.$animada.' bg-danger" role="progressbar" aria-valuenow="'.$temppc1.'" aria-valuemin="'.$temp_p_min.'"
+<div class="progress-bar '.$heat_pump_animada.$heat_pump_striped.$heat_pump_color_heater.'" role="progressbar" aria-valuenow="'.$temppc1.'" aria-valuemin="'.$temp_p_min.'"
 aria-valuemax="'.$temp_p_max.'" style="width: '.$temppc1.'%; height: 100%;">
 '.$tempc1.'
 </div>
 </div>
 Delta:
 <div class="progress"  style="height: 20px ;font-size:20px;">
-<div class="progress-bar '.$animada.' bg-success" role="progressbar" aria-valuenow="'.$temp_delta.'" aria-valuemin="-1"
+<div class="progress-bar '.$heat_pump_animada.$heat_pump_striped.' bg-success" role="progressbar" aria-valuenow="'.$temp_delta.'" aria-valuemin="-1"
 aria-valuemax="7" style="width: '.$temp_delta_ppc.'%; height: 100%;">
-'.$temp_delta.'
+'.round($temp_delta,2).'
 </div>
 </div>
 
@@ -161,14 +175,14 @@ aria-valuemax="7" style="width: '.$temp_delta_ppc.'%; height: 100%;">
 
 <p class="card-text">Bomba de aquecimento:
 <div class="progress"  style="height: 20px ;font-size:20px;">
-<div class="progress-bar '.$animada.' " role="progressbar" aria-valuenow="100"
+<div class="progress-bar '.$heat_pump_animada.$heat_pump_striped.$heat_pump_color_onoff.' " role="progressbar" aria-valuenow="100"
 aria-valuemin="0" aria-valuemax="100" style="width: 100%; height: 100%;">'.$heat_pump.'
 </div>
 </div>
 </p>
 <p class="card-text">Bomba Principal:
 <div class="progress"  style="height: 20px ;font-size:20px;">
-<div class="progress-bar '.$animada_main.'" role="progressbar" aria-valuenow="100"
+<div class="progress-bar '.$main_pump_animada.$main_pump_striped.$main_pump_color.'" role="progressbar" aria-valuenow="100"
 aria-valuemin="0" aria-valuemax="100" style="width: 100%; height: 100%;">'.$main_pump.'
 </div>
 </div>
@@ -214,6 +228,7 @@ $body .= '<div class="card" style="width: 18rem;">
 <br>Semana: '.max($deltas_1wk).' | '.min($deltas_1wk).'
 <br>Mês: '.max($deltas_1mo).' | '.min($deltas_1mo).'</p>
 
+</div>
 </div>
 </div>';
 

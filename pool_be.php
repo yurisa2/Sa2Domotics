@@ -47,13 +47,16 @@ if($method == "main_pump") {
 
   $now_weekday = "w";
   $now_weekday .= date('w',time());
-  $now_hour = date('h',time());
+  $now_hour = date('G',time());
 
   $result_sum;
   foreach ($config_main_pump as $key => $value) {
      if($now_weekday == $value ) $result_sum++;
      if($now_hour == $value ) $result_sum++;
+     // echo $value . "<br>";
   }
+  // echo $now_weekday . "<br>";
+  // echo $now_hour . "<br>";
 
   if($result_sum == 2) echo 1;
   else echo 0;

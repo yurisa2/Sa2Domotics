@@ -22,8 +22,8 @@ $html_pre = "<br><br><br>
         <th>Piscina</th>
         <th>Aquecedor</th>
         <th>Delta</th>
-        <th>Bomba Aquecedor</th>
-        <th>Bomba Principal</th>
+        <th>B.Aquecedor</th>
+        <th>B.Principal</th>
       </tr>
     </thead>
     <tbody>
@@ -60,16 +60,16 @@ foreach ($fDB->readContents("temp") as $key => $value) {
 
 if(empty($value->main_pump) || $value->main_pump = "" ) $value_main_pump = 0;
 else {
-$value_main_pump = $value->main_pump;
+$value_main_pump = 1;
 
 }
 
   $html .= "
   <tr>
   <td>".date('Y-m-d G:i:s',$value->time)."</td>
-  <td>$value->tempc0</td>
-  <td>$value->tempc1</td>
-  <td>$delta_local</td>
+  <td>".round($value->tempc0,2)."</td>
+  <td>".round($value->tempc1,2)."</td>
+  <td>".round($delta_local,2)."</td>
   <td>$value->heat_pump</td>
   <td>$value_main_pump</td>
   </tr>
@@ -86,7 +86,7 @@ $html .= "              </tbody>
 
                     $plot->SetIsInline(true);
                     $plot->SetTitle('Temperatura ultimas 24 h');
-                    $plot->SetLegend(array('T.Entrada', 'T.Saida'));
+                    $plot->SetLegend(array('Piscina', 'Aquecedor'));
                     $plot->SetDataColors(array('blue','red'));
                     $plot->SetPlotType('lines');
                     $plot->SetDataType('data-data');

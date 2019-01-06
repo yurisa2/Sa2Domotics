@@ -1,10 +1,10 @@
 <?php
 
 $menu_items = array(
-  "Status" => "index.php",
-  "Temperaturas" => "temp_hist.php",
-  "Eventos" => "events.php",
-  "Bomba Principal" => "main_pump_time_picker.php"
+  "Piscina - Status" => "index.php",
+  "Piscina - Temperaturas" => "temp_hist.php",
+  "Piscina - Bomba Principal" => "main_pump_time_picker.php",
+  "Eventos" => "events.php"
 );
 
 $menu_title = "Canaa";
