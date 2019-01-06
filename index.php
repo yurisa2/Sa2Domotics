@@ -6,7 +6,6 @@ $json_temp = file_get_contents("temp.json");
 $json_temp = json_decode($json_temp);
 
 $main_pump = 0;
-$vazao = 4;
 
 $time = $json_temp->time;
 $millis = $json_temp->millis;
@@ -200,13 +199,12 @@ aria-valuemin="0" aria-valuemax="100" style="width: 100%; height: 100%;">'.$main
 $body .= '<div class="card" style="width: 18rem;">
 <div class="card-body">
 <h5 class="card-title">Energia instantanea:</h5>
-<p class="card-text">Watts: '.$watts.'
-<br>Watts/m: '.round($watts_m,2).'</p>
-<p class="card-text">Assumindo: vazão de 4L/m, 65m de exposicao</p>
+<p class="card-text">Potência: '.$watts.'w
+<p class="card-text">Assumindo: vazão de '.$vazao.'L/m</p>
 <h5 class="card-title">Energia acumulada:</h5>
-<p class="card-text">24h: '.$watts_24h.' Watts
-<br>1 semana: '.$watts_1wk.' Watts
-<br>1 Mês: '.$watts_1mo.' Watts</p>
+<p class="card-text">24h: '.$watts_24h.' Watts .h
+<br>1 semana: '.$watts_1wk.' Watts .h
+<br>1 Mês: '.$watts_1mo.' Watts .h</p>
 </div>
 </div>';
 
@@ -219,9 +217,9 @@ $body .= '<div class="card" style="width: 18rem;">
 <br>Mês : '.round(count($delta_local_1mo)/60,2).'h</p>
 
 <p class="card-text">Temperatura (Max | Min)
-<br>24h: '.max($temps_24h).' | '.min($temps_24h).'
+<br>24h:    '.max($temps_24h).' | '.min($temps_24h).'
 <br>Semana: '.max($temps_1wk).' | '.min($temps_1wk).'
-<br>Mês: '.max($temps_1mo).' | '.min($temps_1mo).'</p>
+<br>Mês:    '.max($temps_1mo).' | '.min($temps_1mo).'</p>
 
 <p class="card-text">Deltas (Max | Min)
 <br>24h: '.max($deltas_24h).' | '.min($deltas_24h).'
