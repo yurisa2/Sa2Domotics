@@ -30,8 +30,14 @@ $times_file = json_decode($times_file);
 // exit;
 $html = "<br><br><br>
 <h2>Bomba principal</h2>
+<div class=\"col-sm-12\" >
+   <div class=\"row\">
 Agora: ".date("w - G:i:s",time())."<br>
+</div>
+</div>
 <h5>Configurado:</h5>
+<div class=\"col-sm-12\" >
+   <div class=\"row\">
 Dias:
 ";
 foreach(convert_pump_time($times_file)[0] as $key => $value) {
@@ -42,7 +48,10 @@ foreach(convert_pump_time($times_file)[1] as $key => $value) {
   $html .= " ".$value.", ";
 }
 
-$html .= "<br><br><br><br>";
+$html .= "
+</div>
+</div>
+<br><br><br><br>";
 $html .= "
 
 <div class=\"container\">
@@ -53,8 +62,7 @@ $html .= "
                 <h2>Nova Configuração</h2>
                 <h4>Horas</h4>
                 <div class=\"row\">
-    <label style=\"  padding: 5px;\" for=\"00\"> 00 </label>
-    <input type=\"checkbox\" name=\"00\" value=\"00\" id=\"00\" /><br class=\"clear\" />
+
 
     <label style=\"  padding: 5px;\" for=\"01\"> 01 </label>
     <input type=\"checkbox\" name=\"01\" value=\"01\" id=\"01\" /><br class=\"clear\" />
@@ -74,6 +82,12 @@ $html .= "
     <label style=\"  padding: 5px;\" for=\"06\"> 06 </label>
     <input type=\"checkbox\" name=\"06\" value=\"06\" id=\"06\" /><br class=\"clear\" />
 
+    </div>
+    </div>
+
+     <div class=\"col-sm-12\" >
+        <div class=\"row\">
+
     <label style=\"  padding: 5px;\" for=\"07\"> 07 </label>
     <input type=\"checkbox\" name=\"07\" value=\"07\" id=\"07\" /><br class=\"clear\" />
 
@@ -89,14 +103,15 @@ $html .= "
     <label style=\"  padding: 5px;\" for=\"11\"> 11 </label>
     <input type=\"checkbox\" name=\"11\" value=\"11\" id=\"11\" /><br class=\"clear\" />
 
+    <label style=\"  padding: 5px;\" for=\"12\"> 12 </label>
+    <input type=\"checkbox\" name=\"12\" value=\"12\" id=\"12\" /><br class=\"clear\" />
+
         </div>
         </div>
 
          <div class=\"col-sm-12\" >
             <div class=\"row\">
 
-            <label style=\"  padding: 5px;\" for=\"12\"> 12 </label>
-            <input type=\"checkbox\" name=\"12\" value=\"12\" id=\"12\" /><br class=\"clear\" />
 
         <label style=\"  padding: 5px;\" for=\"13\"> 13 </label>
         <input type=\"checkbox\" name=\"13\" value=\"13\" id=\"13\" /><br class=\"clear\" />
@@ -116,6 +131,12 @@ $html .= "
         <label style=\"  padding: 5px;\" for=\"18\"> 18 </label>
         <input type=\"checkbox\" name=\"18\" value=\"18\" id=\"18\" /><br class=\"clear\" />
 
+        </div>
+        </div>
+
+         <div class=\"col-sm-12\" >
+            <div class=\"row\">
+
         <label style=\"  padding: 5px;\" for=\"19\"> 19 </label>
         <input type=\"checkbox\" name=\"19\" value=\"19\" id=\"19\" /><br class=\"clear\" />
 
@@ -130,6 +151,10 @@ $html .= "
 
         <label style=\"  padding: 5px;\" for=\"23\"> 23 </label>
         <input type=\"checkbox\" name=\"23\" value=\"23\" id=\"23\" /><br class=\"clear\" />
+
+        <label style=\"  padding: 5px;\" for=\"00\"> 00 </label>
+        <input type=\"checkbox\" name=\"00\" value=\"00\" id=\"00\" /><br class=\"clear\" />
+
             </div>
             </div>
          <div class=\"col-sm-12\" >
@@ -139,20 +164,56 @@ $html .= "
             <label style=\"  padding: 5px;\" for=\"w0\">Domingo</label>
             <input type=\"checkbox\" name=\"w0\" value=\"w0\" id=\"w0\" /><br class=\"clear\" />
 
+            </div>
+            </div>
+
+             <div class=\"col-sm-12\" >
+                <div class=\"row\">
+
             <label style=\"  padding: 5px;\" for=\"w1\">Segunda</label>
             <input type=\"checkbox\" name=\"w1\" value=\"w1\" id=\"w1\" /><br class=\"clear\" />
+
+            </div>
+            </div>
+
+             <div class=\"col-sm-12\" >
+                <div class=\"row\">
 
             <label style=\"  padding: 5px;\" for=\"w2\">Terça</label>
             <input type=\"checkbox\" name=\"w2\" value=\"w2\" id=\"w2\" /><br class=\"clear\" />
 
+            </div>
+            </div>
+
+             <div class=\"col-sm-12\" >
+                <div class=\"row\">
+
             <label style=\"  padding: 5px;\" for=\"w3\">Quarta</label>
             <input type=\"checkbox\" name=\"w3\" value=\"w3\" id=\"w3\" /><br class=\"clear\" />
+
+            </div>
+            </div>
+
+             <div class=\"col-sm-12\" >
+                <div class=\"row\">
 
             <label style=\"  padding: 5px;\" for=\"w4\">Quinta</label>
             <input type=\"checkbox\" name=\"w4\" value=\"w4\" id=\"w4\" /><br class=\"clear\" />
 
+            </div>
+            </div>
+
+             <div class=\"col-sm-12\" >
+                <div class=\"row\">
+
             <label style=\"  padding: 5px;\" for=\"w5\">Sexta</label>
             <input type=\"checkbox\" name=\"w5\" value=\"w5\" id=\"w5\" /><br class=\"clear\" />
+
+            </div>
+            </div>
+
+             <div class=\"col-sm-12\" >
+                <div class=\"row\">
 
             <label style=\"  padding: 5px;\" for=\"w6\">Sábado</label>
             <input type=\"checkbox\" name=\"w6\" value=\"w6\" id=\"w6\" /><br class=\"clear\" />
@@ -171,7 +232,7 @@ $html .= "
 
 
                     $pb = new PageBuilder;
-                    $pb->build_menu($menu_title,$menu_items);
+                    $pb->build_menu(MENU_TITLE,$menu_items);
                     $pb->append_body($html);
 
                     $pb->render_full_html();

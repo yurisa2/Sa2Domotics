@@ -532,11 +532,11 @@ class PHPlot
     /** Color (R,G,B,A) to use for tick labels  */
     protected $ticklabel_color;
     /** Color (R,G,B,A) for main title (and default for X and Y titles) */
-    protected $title_color;
+    protected $menu_title_color;
     /** Y offset of main title position  */
-    protected $title_offset;
+    protected $menu_title_offset;
     /** Main title text */
-    protected $title_txt = '';
+    protected $menu_title_txt = '';
     /** Total number of entries (rows times columns in each row) in the data array. */
     protected $total_records;
     /** Color (R,G,B,A) designated as transparent  */
@@ -4075,7 +4075,7 @@ class PHPlot
         $min_margin = 2 * $gap + $base_margin;
 
         // Calculate the title sizes (main here, axis titles below):
-        list($unused, $title_height) = $this->SizeText('title', 0, $this->title_txt);
+        list($unused, $menu_title_height) = $this->SizeText('title', 0, $this->title_txt);
 
         // Special case for maximum area usage with no X/Y titles or labels, only main title:
         if ($maximize) {
@@ -4085,8 +4085,8 @@ class PHPlot
                 $this->x_right_margin = $base_margin;
             if (!isset($this->y_top_margin)) {
                 $this->y_top_margin = $base_margin;
-                if ($title_height > 0)
-                    $this->y_top_margin += $title_height + $gap;
+                if ($menu_title_height > 0)
+                    $this->y_top_margin += $menu_title_height + $gap;
             }
             if (!isset($this->y_bot_margin))
                 $this->y_bot_margin = $base_margin;
@@ -4203,8 +4203,8 @@ class PHPlot
         $this->x_title_bot_offset = $gap;
 
         // Space for main title?
-        if ($title_height > 0)
-            $top_margin += $title_height + $gap;
+        if ($menu_title_height > 0)
+            $top_margin += $menu_title_height + $gap;
 
         // Reserve space for X title, above and/or below as needed:
         if ($x_title_height > 0 && ($pos = $this->x_title_pos) != 'none') {
@@ -6741,10 +6741,10 @@ class PHPlot
 
         case 'title': // SetLegendPosition with mode='title', relative to main title.
             // Recalculate main title position/size, since CalcMargins does not save it. See DrawTitle()
-            list($title_width, $title_height) = $this->SizeText('title', 0, $this->title_txt);
-            $title_x = (int)(($this->image_width - $title_width) / 2);
-            return array((int)($x_base * $title_width - $x * $width) + $title_x + $x_offset,
-                         (int)($y_base * $title_height - $y * $height) + $this->title_offset + $y_offset);
+            list($menu_title_width, $menu_title_height) = $this->SizeText('title', 0, $this->title_txt);
+            $menu_title_x = (int)(($this->image_width - $menu_title_width) / 2);
+            return array((int)($x_base * $menu_title_width - $x * $width) + $menu_title_x + $x_offset,
+                         (int)($y_base * $menu_title_height - $y * $height) + $this->title_offset + $y_offset);
 
         default: // If mode is unset (or invalid), use default position.
             return array ($this->plot_area[2] - $width - $this->safe_margin,

@@ -39,7 +39,7 @@ $html .= "              </tbody>
 
 
 $pb = new PageBuilder;
-$pb->build_menu($menu_title,$menu_items);
+$pb->build_menu(MENU_TITLE,$menu_items);
 $pb->append_body($html);
 
 $pb->render_full_html();

@@ -11,8 +11,8 @@ class PageBuilder {
     $this->footer = footer_output();
   }
 
-  function build_menu($title,$menu_items) {
-    $this->menu = menu_output($title,$menu_items);
+  function build_menu($menu_title,$menu_items) {
+    $this->menu = menu_output($menu_title,$menu_items);
   }
 
   function append_body($body) {

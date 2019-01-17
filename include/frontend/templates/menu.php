@@ -1,5 +1,5 @@
 <?php
-function menu_output($title,$menu_items) {
+function menu_output($menu_title,$menu_items) {
 
 
 $template ="
@@ -8,7 +8,7 @@ $template ="
 aria-controls=\"navbarsExampleDefault\" aria-expanded=\"false\" aria-label=\"Toggle navigation\">
     <span class=\"navbar-toggler-icon\"></span>
   </button>
-  <a class=\"navbar-brand\" href=\"#\">$title</a>
+  <a class=\"navbar-brand\" href=\"".DEFAULT_INDEX."\">$menu_title</a>
 
   <div class=\"collapse navbar-collapse\" id=\"navbarsExampleDefault\">
     <ul class=\"navbar-nav mr-auto\">";
