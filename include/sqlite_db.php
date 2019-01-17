@@ -45,6 +45,36 @@ class sa2_db
 
 
 
+    function insert_event($data_array)
+    {
+
+      $sql_query =
+      "
+      insert into temp_logger
+      (time,event,event_text)
+      values
+      ('$data_array[time]',
+      '$data_array[event]',
+      '$data_array[event_text]'
+      )";
+
+      try {
+        $this->obj_db->exec($sql_query);
+
+      }
+      catch(Exception $e) {
+          echo 'Exception -> ';
+          echo "$sql_query<br>";
+          var_dump($e->getMessage());
+          exit;
+      }
+      //  echo $sql_query; //DEBUG
+
+      return $this->obj_db->lastInsertId();
+    }
+
+
+
 
 
 }

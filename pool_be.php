@@ -1,4 +1,6 @@
 <?php
+include_once "include/include_all.php";
+
 error_reporting(E_ERROR | E_PARSE);
 
 $method = $_GET["method"];
@@ -24,6 +26,10 @@ $content["main_pump"] = $main_pump;
 file_put_contents("temp.json",json_encode($content));
 file_put_contents("files/temp_".time().".json",json_encode($content));
 
+$db = new sa2_db;
+$db->insert_temp_logger($content);
+
+
 echo "OK Temp received!";
 }
 
@@ -35,6 +41,9 @@ $content["millis"] = $millis;
 $content["event_text"] = $event_text;
 
 file_put_contents("files/event_".time().".json",json_encode($content));
+
+$db = new sa2_db;
+$db->insert_event($content);
 
 echo "OK Event received!";
 }
