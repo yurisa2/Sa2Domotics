@@ -24,7 +24,7 @@ $content["heat_pump"] = $heat_pump;
 $content["main_pump"] = $main_pump;
 
 file_put_contents("temp.json",json_encode($content));
-file_put_contents("files/temp_".time().".json",json_encode($content));
+// file_put_contents("files/temp_".time().".json",json_encode($content));
 
 $db = new sa2_db;
 $db->insert_temp_logger($content);
