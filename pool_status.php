@@ -1,6 +1,8 @@
 <?php
-
 include_once "include/include_all.php";
+
+$db = new sa2_db;
+
 
 $json_temp = file_get_contents("temp.json");
 $json_temp = json_decode($json_temp);
@@ -14,8 +16,6 @@ $tempc1 = $json_temp->tempc1;
 $heat_pump = $json_temp->heat_pump;
 $main_pump = $json_temp->main_pump;
 
-$fDB = new FileToDb;
-$fDB->readFiles("files");
 
 $time_24h = time() - 86400;
 $time_1wk = time() - (86400 * 7) ;
@@ -28,36 +28,38 @@ $delta_local_1mo = array();
 
 $temps_24h = array();
 
-foreach ($fDB->readContents("temp") as $key => $value) {
-  if($value->time > $time_24h) {
-    $temps_24h[] = $value->tempc1;
-    $deltas_24h[] =  $value->tempc1-$value->tempc0;
+
+foreach ($db->select_temps((86400 * 30)) as $key => $value) {
+  if($value["time"] > $time_24h) {
+    $temps_24h[] = $value["tempc1"];
+    $deltas_24h[] =  $value["tempc1"]-$value["tempc0"];
   };
-  if($value->time > $time_1wk) {
-    $temps_1wk[] = $value->tempc1;
-    $deltas_1wk[] =  $value->tempc1-$value->tempc0;
+  if($value["time"] > $time_1wk) {
+    $temps_1wk[] = $value["tempc1"];
+    $deltas_1wk[] =  $value["tempc1"]-$value["tempc0"];
   };
-  if($value->time > $time_1mo) {
-    $temps_1mo[] = $value->tempc1;
-    $deltas_1mo[] =  $value->tempc1-$value->tempc0;
+  if($value["time"] > $time_1mo) {
+    $temps_1mo[] = $value["tempc1"];
+    $deltas_1mo[] =  $value["tempc1"]-$value["tempc0"];
   };
 
-  if($value->time > $time_24h && $value->heat_pump == 1) {
-    $tempc1_24h[] = $value->tempc1;
-    $tempc0_24h[] = $value->tempc0;
-    $delta_local_24h[] = $value->tempc1-$value->tempc0;
+  if($value["time"] > $time_24h && $value["heat_pump"] == 1) {
+    $tempc1_24h[] = $value["tempc1"];
+    $tempc0_24h[] = $value["tempc0"];
+    $delta_local_24h[] = $value["tempc1"]-$value["tempc0"];
   };
-  if($value->time > $time_1wk && $value->heat_pump == 1) {
-    $tempc1_1wk[] = $value->tempc1;
-    $tempc0_1wk[] = $value->tempc0;
-    $delta_local_1wk[] = $value->tempc1-$value->tempc0;
+  if($value["time"] > $time_1wk && $value["heat_pump"] == 1) {
+    $tempc1_1wk[] = $value["tempc1"];
+    $tempc0_1wk[] = $value["tempc0"];
+    $delta_local_1wk[] = $value["tempc1"]-$value["tempc0"];
   };
-  if($value->time > $time_1mo && $value->heat_pump == 1) {
-    $tempc1_1mo[] = $value->tempc1;
-    $tempc0_1mo[] = $value->tempc0;
-    $delta_local_1mo[] = $value->tempc1-$value->tempc0;
+  if($value["time"] > $time_1mo && $value["heat_pump"] == 1) {
+    $tempc1_1mo[] = $value["tempc1"];
+    $tempc0_1mo[] = $value["tempc0"];
+    $delta_local_1mo[] = $value["tempc1"]-$value["tempc0"];
   };
 }
+
 
 function avg($a) {
   // $a = array_filter($a);
@@ -237,5 +239,8 @@ $pb->build_menu(MENU_TITLE,$menu_items);
 $pb->append_body($body);
 
 $pb->render_full_html();
+
+
+
 
 ?>

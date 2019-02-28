@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors',1);
+ini_set('display_startup_erros',1);
+error_reporting(E_ALL);
+
 include_once "include/include_all.php";
 unlink("temp_plot.png");
 
@@ -8,9 +12,9 @@ $time = $json_temp->time;
 
 $dia_hora = date('d/m/y G:i',$time);
 
-$fDB = new FileToDb;
-$fDB->readFiles("files");
-// var_dump($fDB->readContents("temp"));
+$db = new sa2_db;
+
+var_dump($db);
 
 $html_pre = "<br><br><br>
 <h2>Histórico Temperatura</h2>
@@ -36,29 +40,29 @@ $time_24h = time() - 86400;
 
 $html = "";
 
-foreach ($fDB->readContents("temp") as $key => $value) {
-  if($value->time > $time_24h) {
+foreach ($db->select_temps(100000) as $key => $value) {
+  if($value["time"] > $time_24h) {
 
-    $delta_local = $value->tempc1-$value->tempc0;
+    $delta_local = $value["tempc1"]-$value["tempc0"];
 
   $plot_data[] = array(
     '',
-    $value->time,
-    $value->tempc0,
-    $value->tempc1
+    $value["time"],
+    $value["tempc0"],
+    $value["tempc1"]
   );
 
   $plot_delta[] = array(
     '',
-    $value->time,
+    $value["time"],
     $delta_local);
 
 
-  $temps[] = $value->tempc1;
+  $temps[] = $value["tempc1"];
 
 }
 
-if(empty($value->main_pump) || $value->main_pump = "" ) $value_main_pump = 0;
+if(empty($value["main_pump"]) || $value["main_pump"] = "" ) $value_main_pump = 0;
 else {
 $value_main_pump = 1;
 
@@ -66,11 +70,11 @@ $value_main_pump = 1;
 
   $html .= "
   <tr>
-  <td>".date('Y-m-d G:i:s',$value->time)."</td>
-  <td>".round($value->tempc0,2)."</td>
-  <td>".round($value->tempc1,2)."</td>
+  <td>".date('Y-m-d G:i:s',$value["time"])."</td>
+  <td>".round($value["tempc0"],2)."</td>
+  <td>".round($value["tempc1"],2)."</td>
   <td>".round($delta_local,2)."</td>
-  <td>$value->heat_pump</td>
+  <td>$value[heat_pump]</td>
   <td>$value_main_pump</td>
   </tr>
   ";
